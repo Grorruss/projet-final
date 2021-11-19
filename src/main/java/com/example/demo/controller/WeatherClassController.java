@@ -31,18 +31,34 @@ public class WeatherClassController {
                 HttpMethod.GET, null, new ParameterizedTypeReference<String>() {}, key).getBody();
     }
 
+    @ApiOperation(value = "Get city details", response = WeatherClassController.class, tags = "getCityDetails")
+    @RequestMapping(value = "/getCityDetails/{city}", method = RequestMethod.GET)
+    public String getCityDetails(@PathVariable String city) {
+        return restTemplate.exchange("http://dataservice.accuweather.com/locations/v1/cities/search?apikey=" + apiKey + "&q=" + city + "&language=fr-fr",
+                HttpMethod.GET, null, new ParameterizedTypeReference<String>() {}, city).getBody();
+    }
+
     @ApiOperation(value = "Get weather by city", response = WeatherClassController.class, tags = "getCityWeather")
     @RequestMapping(value = "/getCityWeather/{city}", method = RequestMethod.GET)
     public String getCityWeather(@PathVariable String city) {
-       return jsonParser(restTemplate.exchange("http://dataservice.accuweather.com/locations/v1/cities/search?apikey=" + apiKey + "&q=" + city + "&language=fr-fr",
-                HttpMethod.GET, null, new ParameterizedTypeReference<String>() {}, city).getBody());
+       String result = getKey(city);
+       return getWeather(result);
     }
 
-    public String jsonParser(String json) {
+    @ApiOperation(value = "Get 5 days forecast by city", response = WeatherClassController.class, tags = "getForecast")
+    @RequestMapping(value = "/getForecast/{city}", method = RequestMethod.GET)
+    public String getForecast(@PathVariable String city) {
+        String result = getKey(city);
+        return restTemplate.exchange("http://dataservice.accuweather.com/forecasts/v1/daily/5day/" + result + "?apikey=" + apiKey + "&language=fr-fr",
+                HttpMethod.GET, null, new ParameterizedTypeReference<String>() {}, result).getBody();
+    }
+
+    public String getKey(String city) {
+        String json = getCityDetails(city);
         json = json.substring(1, json.length() - 1);
         Map jsonJavaRootObject = new Gson().fromJson(json, Map.class);
         String key = (String) jsonJavaRootObject.get("Key");
-        return getWeather(key);
+        return key;
     }
 
     @Bean
