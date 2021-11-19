@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 public class WeatherClassController {
 
-    private final String apiKey = "jsNPTmcWGr6g4Oov6lpcz0iTbTE9QxUb";
+    private final String apiKey = "2YQpMaGUI740JVGEGRVbVUdFsHmjjfL8";
 
     @Autowired
     RestTemplate restTemplate;
@@ -27,10 +27,22 @@ public class WeatherClassController {
     @RequestMapping(value = "/city/{key}", method = RequestMethod.GET)
     public String getWeather(@PathVariable String key)
     {
-        System.out.println("Getting Weather details for " + key);
-        //System.out.println("Response Body " + response);
         return restTemplate.exchange("http://dataservice.accuweather.com/currentconditions/v1/{key}?apikey=" + apiKey + "&language=fr-fr",
                 HttpMethod.GET, null, new ParameterizedTypeReference<String>() {}, key).getBody();
+    }
+
+    @ApiOperation(value = "Get weather by city", response = WeatherClassController.class, tags = "getCityWeather")
+    @RequestMapping(value = "/getCityWeather/{city}", method = RequestMethod.GET)
+    public String getCityWeather(@PathVariable String city) {
+       return jsonParser(restTemplate.exchange("http://dataservice.accuweather.com/locations/v1/cities/search?apikey=" + apiKey + "&q=" + city + "&language=fr-fr",
+                HttpMethod.GET, null, new ParameterizedTypeReference<String>() {}, city).getBody());
+    }
+
+    public String jsonParser(String json) {
+        json = json.substring(1, json.length() - 1);
+        Map jsonJavaRootObject = new Gson().fromJson(json, Map.class);
+        String key = (String) jsonJavaRootObject.get("Key");
+        return getWeather(key);
     }
 
     @Bean
