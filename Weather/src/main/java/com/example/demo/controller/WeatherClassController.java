@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
 import com.google.gson.Gson;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -12,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.Map;
 
+@Api(value = "WeatherClassController, this controller allows to retrieve the weather of a city")
 @RestController
 public class WeatherClassController {
 
@@ -23,7 +25,13 @@ public class WeatherClassController {
     @Autowired
     RestTemplate restTemplate;
 
-    @ApiOperation(value = "Get details for weather", response = WeatherClassController.class, tags = "getWeather")
+    @ApiOperation(value = "Get weather for a city id", response = WeatherClassController.class, tags = "getWeather")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Suceess|OK"),
+            @ApiResponse(code = 401, message = "not authorized!"),
+            @ApiResponse(code = 403, message = "forbidden!!!"),
+            @ApiResponse(code = 404, message = "not found!!!") })
+
     @RequestMapping(value = "/city/{key}", method = RequestMethod.GET)
     public String getWeather(@PathVariable String key)
     {
@@ -57,8 +65,7 @@ public class WeatherClassController {
         String json = getCityDetails(city);
         json = json.substring(1, json.length() - 1);
         Map jsonJavaRootObject = new Gson().fromJson(json, Map.class);
-        String key = (String) jsonJavaRootObject.get("Key");
-        return key;
+        return (String) jsonJavaRootObject.get("Key");
     }
 
     @Bean
